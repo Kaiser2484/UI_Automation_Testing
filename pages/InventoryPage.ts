@@ -55,6 +55,17 @@ export class InventoryPage {
    */
   readonly sortDropdown: Locator;
 
+  /**
+   * Badge (huy hiệu) hiển thị số lượng sản phẩm trong giỏ hàng.
+   * Nằm trên icon giỏ hàng ở góc phải trên.
+   *
+   * TẠI SAO cần locator này?
+   * - Khi thêm sản phẩm, badge sẽ cập nhật số lượng (ví dụ: "1", "2", ...).
+   * - Đây là cách QUAN TRỌNG để xác minh hành động "Add to cart" thực sự có hiệu lực,
+   *   thay vì chỉ kiểm tra nút có click được không (kiểm tra STATE thay vì ACTION).
+   */
+  readonly cartBadge: Locator;
+
   // ========================================================================
   // CONSTRUCTOR
   // ========================================================================
@@ -69,6 +80,7 @@ export class InventoryPage {
     this.logoutLink = page.locator('[data-test="logout-sidebar-link"]');
     this.shoppingCartLink = page.locator('[data-test="shopping-cart-link"]');
     this.sortDropdown = page.locator('[data-test="product-sort-container"]');
+    this.cartBadge = page.locator('[data-test="shopping-cart-badge"]');
   }
 
   // ========================================================================
@@ -140,5 +152,34 @@ export class InventoryPage {
     const productCard = this.inventoryItems.filter({ hasText: productName });
     // Mỗi product card có một nút "Add to cart" bên trong.
     await productCard.locator('button', { hasText: 'Add to cart' }).click();
+  }
+
+  /**
+   * Lấy số lượng sản phẩm hiển thị trên badge giỏ hàng.
+   *
+   * TẠI SAO cần method này?
+   * - Badge chỉ xuất hiện khi giỏ hàng có ≥1 sản phẩm.
+   * - Kiểm tra badge giúp xác minh STATE thực sự thay đổi sau khi "Add to cart",
+   *   không chỉ kiểm tra nút click được (ACTION) → test chất lượng hơn.
+   *
+   * @returns Số lượng sản phẩm trong giỏ (dạng number), hoặc 0 nếu badge không hiển thị.
+   */
+  async getCartBadgeCount(): Promise<number> {
+    // Kiểm tra badge có visible không (giỏ hàng trống thì badge không render).
+    const isVisible = await this.cartBadge.isVisible();
+    if (!isVisible) return 0;
+    const text = (await this.cartBadge.textContent()) ?? '0';
+    return parseInt(text, 10);
+  }
+
+  /**
+   * Điều hướng đến trang Giỏ Hàng (Cart) bằng cách click vào icon giỏ hàng.
+   *
+   * TẠI SAO dùng method riêng thay vì click trực tiếp trong test?
+   * - Đóng gói navigation logic → nếu SauceDemo đổi cách truy cập cart, chỉ sửa ở đây.
+   * - Giữ test file sạch, chỉ tập trung vào assertion.
+   */
+  async goToCart() {
+    await this.shoppingCartLink.click();
   }
 }
