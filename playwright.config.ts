@@ -7,6 +7,13 @@
  * - Playwright đọc file này để biết: chạy test ở thư mục nào, dùng trình duyệt gì,
  *   URL gốc là gì, và xuất báo cáo (report) theo định dạng nào.
  * - Tách cấu hình ra file riêng giúp dễ bảo trì và thay đổi mà KHÔNG cần sửa code test.
+ *
+ * CẬP NHẬT MỚI: Thêm cấu hình cho Visual Regression Testing (VRT)
+ * - snapshotPathTemplate : Quy định vị trí lưu file ảnh baseline, tập trung
+ *                          vào thư mục __screenshots__ để dễ quản lý version control.
+ * - expect.toHaveScreenshot: Cấu hình ngưỡng so sánh pixel mặc định toàn cục.
+ * - reporter             : Kết hợp 'list' + 'html' để xem kết quả cả trong
+ *                          terminal lẫn báo cáo web (có ảnh diff khi VRT fail).
  */
 
 import { defineConfig, devices } from '@playwright/test';
@@ -36,9 +43,34 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
 
   /* --- BÁO CÁO KẾT QUẢ TEST (REPORTER) --- */
-  // 'html' tạo báo cáo trực quan dưới dạng trang web, dễ xem pass/fail.
-  // Có thể mở bằng lệnh: npx playwright show-report
-  reporter: 'html',
+  /**
+   * Dùng MẢNG reporter để kết hợp nhiều định dạng báo cáo cùng lúc:
+   * - 'list' : In kết quả từng test ra terminal ngay khi chạy (tiện cho debug).
+   * - 'html' : Tạo báo cáo trang web đẹp, CÓ ẢNH DIFF khi VRT fail.
+   *            Mở bằng lệnh: npx playwright show-report
+   *
+   * VỚI VISUAL REGRESSION TESTING, báo cáo HTML ĐẶC BIỆT HỮU ÍCH vì nó
+   * hiển thị ảnh EXPECTED vs ACTUAL vs DIFF side-by-side khi test fail →
+   * giúp developer thấy NGAY vùng nào trên UI bị thay đổi.
+   */
+  reporter: [['list'], ['html']],
+
+  /**
+   * snapshotPathTemplate: Quy định TÊN VÀ VỊ TRÍ file ảnh baseline.
+   *
+   * Với Playwright phiên bản hiện tại, Playwright tự động lưu ảnh baseline tại:
+   *   tests/<tên-file-spec>-snapshots/<browser>/<tên-ảnh>
+   *
+   * Ví dụ cho lệnh toHaveScreenshot('vrt-01-login-page.png') trong visual.spec.ts:
+   *   tests/visual.spec.ts-snapshots/vrt-01-login-page-chromium-win32.png
+   *
+   * TẠI SAO KHÔNG tùy chỉnh snapshotPathTemplate?
+   * - Cấu hình mặc định của Playwright hoạt động tốt và nhất quán giữa các phiên bản.
+   * - Tên file tự động bao gồm {platform} và {browser} → tránh nhầm lẫn khi commit Git.
+   * - Nếu muốn tùy chỉnh, có thể bật snapshotPathTemplate sau khi hiểu rõ cú pháp:
+   *   snapshotPathTemplate: '{testDir}/__screenshots__/{testFileName}/{projectName}/{snapshotName}',
+   */
+
 
   /* --- CÀI ĐẶT CHUNG CHO MỌI PROJECT (TRÌNH DUYỆT) --- */
   use: {
@@ -85,4 +117,21 @@ export default defineConfig({
     //   use: { ...devices['Desktop Safari'] },
     // },
   ],
+
+  /* --- CẤU HÌNH NGƯỠNG SO SÁNH ẢNH TOÀN CỤC (VRT) --- */
+  /**
+   * Các giá trị này là MẶC ĐỊNH TOÀN CỤC cho tất cả lời gọi toHaveScreenshot().
+   * Từng test trong visual.spec.ts có thể OVERRIDE bằng cách truyền options riêng.
+   *
+   * maxDiffPixels : Tối đa 100 pixel được phép khác nhau (fallback an toàn).
+   * threshold     : Mỗi pixel được sai lệch tối đa 20% về màu sắc.
+   *
+   * Trong visual.spec.ts, ta dùng maxDiffPixels: 50 (chặt hơn) để test nghiêm ngặt hơn.
+   */
+  expect: {
+    toHaveScreenshot: {
+      maxDiffPixels: 100,
+      threshold: 0.2,
+    },
+  },
 });

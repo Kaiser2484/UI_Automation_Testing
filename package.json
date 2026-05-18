@@ -8,7 +8,12 @@
     "test:headed": "npx playwright test --headed",
     "test:chromium": "npx playwright test --project=chromium",
     "test:firefox": "npx playwright test --project=firefox",
-    "test:report": "npx playwright show-report"
+    "test:report": "npx playwright show-report",
+    "vrt:update": "npx playwright test tests/visual.spec.ts --update-snapshots --project=chromium",
+    "vrt:run": "npx playwright test tests/visual.spec.ts --project=chromium",
+    "vrt:run:all-browsers": "npx playwright test tests/visual.spec.ts",
+    "vrt:update:all-browsers": "npx playwright test tests/visual.spec.ts --update-snapshots",
+    "perf:run": "npx playwright test tests/performance.spec.ts --project=chromium --workers=1 --timeout=120000"
   },
   "repository": {
     "type": "git",
@@ -24,6 +29,8 @@
   "homepage": "https://github.com/Kaiser2484/UI_Automation_Testing#readme",
   "devDependencies": {
     "@playwright/test": "^1.59.1",
-    "@types/node": "^25.6.0"
+    "@types/node": "^25.6.0",
+    "lighthouse": "^13.3.0",
+    "playwright-lighthouse": "^4.0.0"
   }
 }
