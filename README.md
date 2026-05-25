@@ -1,112 +1,120 @@
-# 🚀 UI Automation Testing Project - Đồ Án Đảm Bảo Chất Lượng Phần Mềm (SQA)
+# 🛒 UI Automation Testing — AutomationExercise.com (Enterprise Regression Framework)
 
-Dự án này là một Framework kiểm thử tự động toàn diện được phát triển bằng **Playwright** và **TypeScript**. Framework được xây dựng theo mô hình **Page Object Model (POM)** để kiểm thử trang web thương mại điện tử mẫu: [SauceDemo](https://www.saucedemo.com/).
+Bộ framework kiểm thử tự động **E2E Regression Suite** cấp độ doanh nghiệp, bao phủ **đầy đủ 26 Test Cases chính thức** của nền tảng thương mại điện tử **[AutomationExercise.com](https://automationexercise.com/)**, kết hợp các kỹ thuật kiểm thử nâng cao vượt bậc.
 
-Dự án này được thiết kế để minh chứng cho các khái niệm và kỹ thuật kiểm thử phần mềm nâng cao trong môi trường học thuật.
-
----
-
-## 🛠️ Công Nghệ Sử Dụng (Tech Stack)
-
-- **Ngôn ngữ:** [TypeScript](https://www.typescriptlang.org/)
-- **Core Framework:** [Playwright](https://playwright.dev/)
-- **Thiết kế kiến trúc:** Page Object Model (POM)
-- **Kiểm thử phi chức năng:** [Google Lighthouse](https://developers.google.com/web/tools/lighthouse) & `playwright-lighthouse`
+Dự án được xây dựng bằng **Playwright** và **TypeScript**, tuân thủ nghiêm ngặt mô hình **Page Object Model (POM)** kết hợp **B1 Custom Fixtures**, phục vụ báo cáo Đồ án môn học **"Đảm bảo Chất lượng Phần mềm (SQA)"** và chứng minh năng lực kiểm thử đạt tiêu chuẩn quốc tế **ISO/IEC 25010**.
 
 ---
 
-## 🎯 Các Phạm Vi Kiểm Thử Đã Triển Khai
+## 🛠️ Tính Năng SQA Nâng Cao Đã Tích Hợp
 
-Framework này kết hợp cả **Kiểm thử Chức năng** và **Kiểm thử Phi Chức năng** để đảm bảo chất lượng hệ thống:
+### 1. 🔑 Functional Testing E2E (Xác thực & Thanh toán)
+- Đầy đủ luồng nghiệp vụ phức tạp: Đăng nhập/Đăng ký với dynamic email (tránh trùng lặp DB), Thêm sản phẩm, Checkout so khớp địa chỉ giao hàng và thanh toán, Điền thẻ tín dụng, Tải hóa đơn PDF thực tế.
 
-### 1. Functional Testing (Kiểm thử chức năng - E2E)
+### 2. 🧩 B1 (Custom Fixtures) — Đỉnh cao kiến trúc POM
+- Loại bỏ hoàn toàn 100% boilerplate code (`beforeEach` chứa `new PageObject(page)`) ở tất cả các file spec.
+- Khởi tạo tự động tất cả 8 Page Objects thông qua tệp [pom-fixture.ts](file:///c:/PKA/DGKDPM/UI_Automation_Testing/fixtures/pom-fixture.ts).
+- Cho phép destruct trực tiếp các trang cần dùng làm tham số của test case.
+  ```typescript
+  import { test } from '../fixtures/pom-fixture';
+  test('TC', async ({ homePage, productsPage, cartPage }) => {
+     await homePage.goto();
+     ...
+  });
+  ```
 
-- **Happy Paths:** Các luồng hoạt động chuẩn của người dùng (Đăng nhập → Chọn hàng → Giỏ hàng → Thanh toán thành công).
-- **Negative Paths:** Kiểm tra hệ thống xử lý lỗi như thế nào (Sai mật khẩu, Bỏ trống thông tin thanh toán,...).
-- **Data-Driven Testing (DDT):** Chạy cùng một kịch bản kiểm thử (Test Case) với nhiều bộ dữ liệu khác nhau (các loại user khác nhau được định nghĩa trong `data/`).
+### 3. 📊 Data-Driven Testing (DDT) — Kiểm thử hướng dữ liệu
+- Tách biệt hoàn toàn mã kiểm thử khỏi dữ liệu đầu vào thông qua tệp [data_driven.spec.ts](file:///c:/PKA/DGKDPM/UI_Automation_Testing/tests/data_driven.spec.ts).
+- Vòng lặp động chạy tự động với các danh sách từ khóa tìm kiếm (`['Blue Top', 'Men Tshirt', 'Sleeveless']`) và nhiều bộ dữ liệu biểu mẫu liên hệ (`Contact Submissions`).
 
-### 2. Visual Regression Testing (VRT - Kiểm thử Hồi quy Giao diện)
+### 4. 👁️ Visual Regression Testing (VRT) — So khớp giao diện
+- Triển khai VRT trong [visual_regression.spec.ts](file:///c:/PKA/DGKDPM/UI_Automation_Testing/tests/visual_regression.spec.ts) sử dụng API `toHaveScreenshot()` của Playwright.
+- So khớp pixel-by-pixel đối với các cụm giao diện tĩnh (Brand Logo ở Header, Get in touch Title) để tránh flaky do Ads và Carousel, đồng thời kiểm soát chất lượng UI hoàn hảo.
 
-- Sử dụng hàm `toHaveScreenshot()` của Playwright.
-- Tự động phát hiện các thay đổi không mong muốn về mặt giao diện (pixel-by-pixel).
-- Xử lý các phần tử động (Dynamic Elements) bằng kỹ thuật `mask` và `networkidle` (ví dụ: tắt animation, che phủ ảnh lazy-loading).
+### 5. ⚡ Performance Testing (Web Vitals & CDP)
+- Đo lường và kiểm soát các chỉ số tải trang chuẩn Google qua tệp [performance.spec.ts](file:///c:/PKA/DGKDPM/UI_Automation_Testing/tests/performance.spec.ts):
+  - **TTFB (Time to First Byte)**, **DOM Interactive**, và **Total Page Load Time**.
+  - Kết nối trực tiếp đến Chrome DevTools Protocol (CDP) session để phân tích **JS Heap Size (RAM)** nhằm phát hiện Memory Leak, và kiểm soát số lượng thẻ **DOM Nodes** thực tế.
+  - Áp dụng các ngưỡng SLA cam kết chuẩn ISO/IEC 25010.
 
-### 3. Performance Testing (Kiểm thử Hiệu năng)
-
-- Tích hợp **Google Lighthouse** qua giao thức Chrome DevTools Protocol (CDP).
-- Tự động đánh giá các chỉ số **Performance**, **Accessibility**, **Best Practices**, và **SEO** của các trang quan trọng (Login, Inventory).
-- Thiết lập các Ngưỡng chất lượng (Thresholds) để fail test nếu hệ thống không đạt điểm tiêu chuẩn.
+### 6. 🌐 Multi-browser (Chromium + Firefox)
+- Cấu hình chạy song song và độc lập trên cả **Chromium (Chrome)** và **Firefox** trong [playwright.config.ts](file:///c:/PKA/DGKDPM/UI_Automation_Testing/playwright.config.ts).
+- Vượt qua kiểm soát bot của Cloudflare bằng real User-Agent cho cả hai trình duyệt.
 
 ---
 
-## 📁 Cấu Trúc Thư Mục (Directory Structure)
+## 📁 Cấu Trúc Thư Mục Dự Án
 
 ```text
 UI_Automation_Testing/
-├── data/                       # Chứa file dữ liệu kiểm thử (JSON) cho Data-Driven Testing
-├── lighthouse-reports/         # (Tự động sinh) Các file HTML báo cáo hiệu năng Lighthouse
+├── fixtures/                   # Custom Fixtures (B1 - POM Nâng Cao)
+│   └── pom-fixture.ts          # Định nghĩa và tự động hóa khởi tạo POM
+│
 ├── pages/                      # Page Object Model (POM) classes
-│   ├── LoginPage.ts            # Chứa các locators và actions cho trang Đăng nhập
-│   ├── InventoryPage.ts        # Chứa locators và actions cho trang Danh sách sản phẩm
-│   ├── CartPage.ts             # ...
-│   └── CheckoutPage.ts         # ...
-├── tests/                      # Chứa các kịch bản kiểm thử (Test Scripts)
-│   ├── auth.spec.ts            # Kiểm thử luồng Đăng nhập (E2E & Data-Driven)
-│   ├── checkout.spec.ts        # Kiểm thử luồng Giỏ hàng và Thanh toán
-│   ├── performance.spec.ts     # Kiểm thử Hiệu năng bằng Lighthouse
-│   └── visual.spec.ts          # Kiểm thử Hồi quy Giao diện (VRT)
-├── tests/visual.spec.ts-snapshots/ # (Tự động sinh) Chứa ảnh Baseline chuẩn của VRT
-├── playwright.config.ts        # Cấu hình Playwright (browsers, reporters, timeouts, v.v.)
-└── package.json                # Quản lý dependencies và các NPM scripts (lệnh chạy)
+│   ├── HomePage.ts             # Trang chủ (navbar, ad dismissal, scrolls)
+│   ├── LoginPage.ts            # Trang đăng nhập & đăng ký tài khoản chi tiết
+│   ├── ProductsPage.ts         # Trang sản phẩm (lọc, tìm kiếm, đánh giá, recommended)
+│   ├── CartPage.ts             # Trang giỏ hàng (xử lý bảng giỏ hàng, xóa, checkout)
+│   ├── CheckoutPage.ts         # Trang checkout (địa chỉ, review đơn hàng)
+│   ├── ContactUsPage.ts        # Trang liên hệ (điền form, alert handling)
+│   ├── TestCasesPage.ts        # Trang Test Cases (xác minh layout)
+│   └── PaymentPage.ts          # Trang thanh toán (thẻ tín dụng, tải hóa đơn PDF)
+│
+├── tests/                      # Thư mục chứa kịch bản kiểm thử (spec files)
+│   ├── auth_register.spec.ts   # TC 1 - 5 (Xác thực & Đăng ký - POM Fixture)
+│   ├── contact_infopages.spec.ts# TC 6 - 7 (Liên hệ & Info pages - POM Fixture)
+│   ├── products_search.spec.ts # TC 8, 9, 18, 19, 21 (Tìm kiếm & Bộ lọc - POM Fixture)
+│   ├── cart_checkout.spec.ts   # TC 12 - 17, 20, 22 - 24 (Thanh toán & Giỏ hàng - POM Fixture)
+│   ├── ui_navigation.spec.ts   # TC 10, 11, 25, 26 (Tiện ích & Scroll - POM Fixture)
+│   ├── data_driven.spec.ts     # DDT (Tìm kiếm động & Form Submissions)
+│   ├── visual_regression.spec.ts# VRT (So khớp trực quan Header Logo & Contact Title)
+│   └── performance.spec.ts     # Performance (Đo Web Vitals & CDP RAM/DOM Node count)
+│
+├── playwright-report/          # Báo cáo kiểm thử HTML tự động
+├── test-results/               # Ảnh chụp & video khi test thất bại
+├── playwright.config.ts        # Cấu hình Playwright (Đa trình duyệt, timeouts)
+└── package.json                # NPM scripts chạy test
 ```
 
 ---
 
-## ⚙️ Hướng Dẫn Cài Đặt (Setup Instructions)
+## ⚙️ Hướng Dẫn Cài Đặt
 
-1. Cài đặt [Node.js](https://nodejs.org/) (phiên bản 16 trở lên).
-2. Clone repository này về máy.
-3. Mở terminal tại thư mục gốc của dự án và chạy lệnh sau để cài đặt các thư viện:
-
+### Bước 1 — Cài đặt dependencies
 ```bash
 npm install
 ```
 
-1. Cài đặt các trình duyệt Playwright cần thiết (Chromium, Firefox, WebKit):
-
+### Bước 2 — Cài đặt các trình duyệt Playwright
 ```bash
 npx playwright install
 ```
 
 ---
 
-## 🚀 Các Lệnh Khởi Chạy (NPM Scripts)
+## 🚀 Các Lệnh Khởi Chạy Kiểm Thử (NPM Scripts)
 
-Dưới đây là danh sách các lệnh đã được cấu hình sẵn trong `package.json` để bạn dễ dàng chạy test.
+Tôi đã thiết lập các câu lệnh chạy tối ưu trong `package.json`:
 
-### 🧩 Kiểm thử Chức năng (Functional Testing)
+```bash
+# 1. Chạy toàn bộ 26 Test Cases E2E Regression + 3 bộ nâng cao (DDT, VRT, Performance)
+npx playwright test
 
-- `npm run test` : Chạy tất cả test chạy ngầm (headless) trên mọi trình duyệt.
-- `npm run test:headed` : Chạy tất cả test và **hiển thị trình duyệt UI** để quan sát.
-- `npm run test:chromium` : Chỉ chạy test trên Chrome/Edge.
-- `npm run test:firefox` : Chỉ chạy test trên Firefox.
+# 2. Chạy toàn bộ kiểm thử có hiển thị trình duyệt (Headed Mode)
+npx playwright test --headed
 
-### 📸 Kiểm thử Hồi quy Giao diện (Visual Regression Testing)
+# 3. Chạy kiểm thử trên một trình duyệt chỉ định
+npx playwright test --project=chromium
+npx playwright test --project=firefox
 
-*(Chạy trên Chromium làm chuẩn)*
+# 4. Chạy riêng bộ kiểm thử Nâng Cao cụ thể
+npx playwright test tests/data_driven.spec.ts       # Chạy Data-Driven Testing
+npx playwright test tests/visual_regression.spec.ts # Chạy Visual Regression Testing
+npx playwright test tests/performance.spec.ts       # Chạy Performance Testing
 
-- `npm run vrt:update` : Chụp và **tạo mới / cập nhật lại** ảnh gốc (baseline) (Chạy khi mới tạo test VRT hoặc khi UI có thay đổi đúng thiết kế).
-- `npm run vrt:run` : **Chạy test VRT**, chụp ảnh màn hình hiện tại và so sánh với ảnh baseline.
+# 5. Khởi tạo / Cập nhật ảnh VRT mẫu (Golden Master)
+npx playwright test tests/visual_regression.spec.ts --update-snapshots
 
-### ⚡ Kiểm thử Hiệu năng (Performance Testing)
-
-- `npm run perf:run` : Chạy kiểm toán bằng Lighthouse. Lưu ý lệnh này ép buộc chạy 1 luồng (`--workers=1`) để tránh xung đột cổng mạng (port 9222) và sẽ mất khoảng 30-60 giây để thu thập dữ liệu.
-
-### 📊 Xem Báo Cáo (Reporting)
-
-- `npm run test:report` : Mở giao diện HTML báo cáo của Playwright (thể hiện kết quả của Test Chức năng và hình ảnh so sánh của VRT).
-- **Lighthouse Reports**: Các file báo cáo HTML rất chi tiết của hiệu năng sẽ được tự động lưu trong thư mục `lighthouse-reports/`. Hãy mở trực tiếp các file này bằng trình duyệt web để xem.
-
----
-
-*📝 Dự án được thực hiện nhằm phục vụ mục đích nghiên cứu và báo cáo cho Đồ án môn học "Đảm bảo chất lượng phần mềm". Các test script đều được viết kèm theo comment mang tính học thuật chi tiết.*
+# 6. Xem báo cáo kiểm thử HTML sinh động
+npm run test:report
+```

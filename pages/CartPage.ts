@@ -1,54 +1,96 @@
 /**
- * CartPage.ts - Page Object Model cho trang Giỏ Hàng (Cart)
- * ===========================================================
+ * pages/CartPage.ts - Page Object Model cho Trang Giỏ Hàng (Cart)
+ * =================================================================
  *
- * URL: https://www.saucedemo.com/cart.html
+ * MỤC TIÊU TRANG:
+ * URL: https://automationexercise.com/view_cart
  *
- * LUỒNG NGƯỜI DÙNG:
- * Inventory → [Click giỏ hàng] → **Cart Page** → [Checkout] → Checkout Step 1
+ * PHÂN TÍCH HTML STRUCTURE:
+ * -------------------------
+ * <table class="table table-condensed">
+ *   <thead>
+ *     <tr>
+ *       <th>Product</th>
+ *       <th>Category</th>
+ *       <th>Price</th>
+ *       <th>Quantity</th>
+ *       <th>Total</th>
+ *       <th>Delete</th>
+ *     </tr>
+ *   </thead>
+ *   <tbody>
+ *     <tr id="product-1">
+ *       <td class="cart_description">
+ *         <h4><a href="/product_details/1">Blue Top</a></h4>
+ *         <p>Women > Tops</p>
+ *       </td>
+ *       <td class="cart_category"><p>Women > Tops</p></td>
+ *       <td class="cart_price"><p>Rs. 500</p></td>
+ *       <td class="cart_quantity">
+ *         <button class="disabled btn btn-warning btn-xs minus">-</button>
+ *         <input class="disabled" type="text" value="1">
+ *         <button class="btn btn-warning btn-xs plus">+</button>
+ *       </td>
+ *       <td class="cart_total"><p class="cart_total_price">Rs. 500</p></td>
+ *       <td class="cart_delete">
+ *         <a class="cart_quantity_delete" id="product-1" href="/delete_from_cart">
+ *           <i class="fa fa-times"></i>
+ *         </a>
+ *       </td>
+ *     </tr>
+ *   </tbody>
+ * </table>
  *
- * MỤC ĐÍCH:
- * - Hiển thị danh sách sản phẩm đã thêm vào giỏ.
- * - Cho phép xóa sản phẩm khỏi giỏ.
- * - Cho phép tiếp tục mua sắm hoặc tiến hành thanh toán (Checkout).
- *
- * TẠI SAO CẦN PAGE OBJECT RIÊNG CHO CART?
- * - Cart Page có giao diện và chức năng KHÁC BIỆT so với Inventory Page.
- * - Nguyên tắc POM: mỗi trang = một class → tách biệt trách nhiệm.
- * - Các test E2E (End-to-End) cần xác minh sản phẩm trong giỏ trước khi checkout.
+ * NÚT "PROCEED TO CHECKOUT":
+ * <div class="col-sm-6">
+ *   <a href="/checkout" class="btn btn-default check_out">Proceed To Checkout</a>
+ * </div>
  */
 
 import { type Page, type Locator } from '@playwright/test';
 
 export class CartPage {
   // ========================================================================
-  // KHAI BÁO THUỘC TÍNH (LOCATORS)
+  // KHAI BÁO LOCATORS
   // ========================================================================
 
   readonly page: Page;
 
   /**
-   * Tiêu đề trang "Your Cart".
-   * Dùng để xác nhận đã điều hướng đúng đến trang giỏ hàng.
+   * Tiêu đề breadcrumb "Shopping Cart".
+   * HTML: <li class="active">Shopping Cart</li>
+   * Dùng để xác minh đang ở trang giỏ hàng.
    */
-  readonly title: Locator;
+  readonly pageTitle: Locator;
 
   /**
-   * Danh sách tất cả các sản phẩm trong giỏ hàng.
-   * Mỗi item là một hàng (row) chứa tên, mô tả, giá, và nút Remove.
+   * Bảng danh sách sản phẩm trong giỏ hàng.
+   * HTML: <table class="table table-condensed">
+   */
+  readonly cartTable: Locator;
+
+  /**
+   * TẤT CẢ các row sản phẩm trong giỏ hàng.
+   * Mỗi row là một <tr id="product-{id}"> trong <tbody>.
+   * Dùng để đếm số sản phẩm và lặp qua từng item.
    */
   readonly cartItems: Locator;
 
   /**
-   * Nút "Continue Shopping" - quay lại trang Inventory để mua thêm.
+   * Nút "Proceed To Checkout".
+   * HTML: <a href="/checkout" class="btn btn-default check_out">Proceed To Checkout</a>
+   *
+   * LƯU Ý: Nút này có class "check_out" (giống nút "View Cart" trong modal).
+   * → Cần scope selector để tránh nhầm lẫn.
    */
-  readonly continueShoppingButton: Locator;
+  readonly proceedToCheckoutButton: Locator;
 
   /**
-   * Nút "Checkout" - tiến hành thanh toán.
-   * Chuyển đến Checkout Step 1 (nhập thông tin khách hàng).
+   * Text thông báo khi giỏ hàng trống.
+   * HTML: <b>Cart is empty! Click here to buy products.</b>
+   * Dùng để xác minh giỏ hàng đang trống (cho negative test).
    */
-  readonly checkoutButton: Locator;
+  readonly emptyCartMessage: Locator;
 
   // ========================================================================
   // CONSTRUCTOR
@@ -57,11 +99,15 @@ export class CartPage {
   constructor(page: Page) {
     this.page = page;
 
-    // SauceDemo sử dụng data-test attributes nhất quán → ưu tiên dùng.
-    this.title = page.locator('[data-test="title"]');
-    this.cartItems = page.locator('[data-test="inventory-item"]');
-    this.continueShoppingButton = page.locator('[data-test="continue-shopping"]');
-    this.checkoutButton = page.locator('[data-test="checkout"]');
+    this.pageTitle   = page.locator('li.active:has-text("Shopping Cart")');
+    this.cartTable   = page.locator('table.table');
+    this.cartItems   = page.locator('#cart_info_table tbody tr');
+
+    // "Proceed To Checkout" — nằm trong section bên dưới bảng giỏ hàng
+    // Dùng text content để xác định chính xác, tránh nhầm với nút khác
+    this.proceedToCheckoutButton = page.locator('a.btn.check_out:has-text("Proceed To Checkout")');
+
+    this.emptyCartMessage = page.locator('b:has-text("Cart is empty")');
   }
 
   // ========================================================================
@@ -69,69 +115,93 @@ export class CartPage {
   // ========================================================================
 
   /**
-   * Lấy số lượng sản phẩm có trong giỏ hàng.
+   * Điều hướng trực tiếp đến trang giỏ hàng.
+   */
+  async goto() {
+    await this.page.goto('/view_cart', { waitUntil: 'domcontentloaded' });
+  }
+
+  /**
+   * Lấy tên của TẤT CẢ sản phẩm trong giỏ hàng.
    *
-   * TẠI SAO không dùng cart badge mà dùng count() trên DOM?
-   * - Badge chỉ hiển thị CON SỐ, còn count() đếm SỐ PHẦN TỬ THỰC TẾ trên trang.
-   * - So sánh cả hai giúp phát hiện lỗi không đồng nhất giữa badge và nội dung thật.
+   * CÁCH HOẠT ĐỘNG:
+   * Trong mỗi row, tên sản phẩm nằm trong:
+   * <td class="cart_description"><h4><a>Product Name</a></h4></td>
+   *
+   * @returns Mảng chứa tên các sản phẩm trong giỏ
+   */
+  async getCartItemNames(): Promise<string[]> {
+    const nameLocator = this.page.locator('#cart_info_table td.cart_description h4 a');
+    return await nameLocator.allTextContents();
+  }
+
+  /**
+   * Đếm số lượng sản phẩm khác nhau trong giỏ hàng.
+   *
+   * LƯU Ý: Đây là số LOẠI sản phẩm, không phải tổng số lượng.
+   * (Ví dụ: 1 "Blue Top" số lượng 3 → trả về 1, không phải 3)
+   *
+   * @returns Số loại sản phẩm trong giỏ
    */
   async getCartItemCount(): Promise<number> {
     return await this.cartItems.count();
   }
 
   /**
-   * Lấy tên tất cả sản phẩm trong giỏ hàng.
+   * Lấy giá của sản phẩm theo tên.
    *
-   * TẠI SAO cần method này?
-   * - Xác minh ĐÚNG sản phẩm được thêm vào giỏ (không phải sản phẩm khác).
-   * - Quan trọng cho E2E test: kiểm tra "Sauce Labs Backpack" nằm trong giỏ,
-   *   không chỉ kiểm tra "có 1 item" (kiểm tra GIÁ TRỊ thay vì chỉ SỐ LƯỢNG).
+   * @param productName - Tên sản phẩm cần lấy giá
+   * @returns Giá dạng string (ví dụ: "Rs. 500")
    */
-  async getCartItemNames(): Promise<string[]> {
-    return await this.page
-      .locator('[data-test="inventory-item-name"]')
-      .allTextContents();
+  async getPriceByProductName(productName: string): Promise<string> {
+    const row = this.page.locator('#cart_info_table tbody tr').filter({ hasText: productName });
+    const priceCell = row.locator('td.cart_price p');
+    return (await priceCell.textContent())?.trim() ?? '';
   }
 
   /**
-   * Lấy giá của tất cả sản phẩm trong giỏ hàng.
+   * Lấy số lượng (quantity) của sản phẩm theo tên.
    *
-   * TẠI SAO trả về mảng string thay vì number?
-   * - Giá hiển thị dưới dạng "$29.99" (có ký tự $).
-   * - Để test linh hoạt hơn: có thể kiểm tra format hoặc chuyển sang số khi cần.
+   * @param productName - Tên sản phẩm
+   * @returns Số lượng dạng number
    */
-  async getCartItemPrices(): Promise<string[]> {
-    return await this.page
-      .locator('[data-test="inventory-item-price"]')
-      .allTextContents();
+  async getQuantityByProductName(productName: string): Promise<number> {
+    const row = this.page.locator('#cart_info_table tbody tr').filter({ hasText: productName });
+    const qtyBtn = row.locator('td.cart_quantity button, td.cart_quantity input, td.cart_quantity');
+    const value = await qtyBtn.first().textContent();
+    return parseInt(value?.trim() ?? '0', 10);
   }
 
   /**
-   * Xóa một sản phẩm khỏi giỏ hàng theo tên sản phẩm.
+   * Xóa sản phẩm khỏi giỏ hàng theo tên.
    *
-   * @param productName - Tên chính xác của sản phẩm cần xóa
-   *
-   * TẠI SAO dùng filter() + hasText()?
-   * - Tương tự InventoryPage.addProductToCartByName(), ta lọc theo tên sản phẩm.
-   * - Đảm bảo xóa ĐÚNG sản phẩm, không xóa nhầm item khác.
+   * @param productName - Tên sản phẩm cần xóa
    */
-  async removeItemByName(productName: string) {
-    const cartItem = this.cartItems.filter({ hasText: productName });
-    await cartItem.locator('button', { hasText: 'Remove' }).click();
+  async removeProductByName(productName: string) {
+    const row = this.page.locator('#cart_info_table tbody tr').filter({ hasText: productName });
+    const deleteBtn = row.locator('a.cart_quantity_delete');
+    await deleteBtn.click();
+    // Đợi row biến mất (có animation)
+    await row.waitFor({ state: 'hidden' });
   }
 
   /**
-   * Nhấn nút "Checkout" để tiến hành thanh toán.
-   * Chuyển đến Checkout Step 1 (nhập thông tin khách hàng).
+   * Click nút "Proceed To Checkout" để chuyển sang trang thanh toán.
+   *
+   * SAU KHI CLICK:
+   * - Nếu đã đăng nhập → chuyển đến /checkout (trang xác nhận địa chỉ + đơn hàng).
+   * - Nếu chưa đăng nhập → hiện popup yêu cầu đăng nhập hoặc đăng ký.
    */
   async proceedToCheckout() {
-    await this.checkoutButton.click();
+    await this.proceedToCheckoutButton.click();
   }
 
   /**
-   * Nhấn nút "Continue Shopping" để quay lại trang Inventory.
+   * Kiểm tra giỏ hàng có trống không.
+   *
+   * @returns true nếu giỏ hàng trống
    */
-  async continueShopping() {
-    await this.continueShoppingButton.click();
+  async isCartEmpty(): Promise<boolean> {
+    return await this.emptyCartMessage.isVisible({ timeout: 3000 }).catch(() => false);
   }
 }

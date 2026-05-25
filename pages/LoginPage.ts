@@ -1,124 +1,228 @@
-/**
- * LoginPage.ts - Page Object Model cho trang Đăng Nhập (Login)
- * =============================================================
- *
- * PAGE OBJECT MODEL (POM) LÀ GÌ?
- * --------------------------------
- * POM là một Design Pattern phổ biến trong UI Automation Testing.
- * Ý tưởng cốt lõi: Mỗi trang web (page) được đại diện bởi MỘT class riêng biệt.
- * Class này chứa:
- *   1. LOCATORS: Các phần tử UI trên trang (nút, ô nhập, thông báo lỗi, ...).
- *   2. METHODS (hành động): Các thao tác người dùng có thể thực hiện trên trang.
- *
- * TẠI SAO DÙNG POM?
- * - TÁCH BIỆT (Separation of Concerns): Locators/Actions nằm ở Page class,
- *   còn Assertions nằm ở file test → dễ đọc, dễ bảo trì.
- * - TÁI SỬ DỤNG (Reusability): Nhiều test có thể dùng chung cùng một Page class.
- * - DỄ BẢO TRÌ (Maintainability): Nếu UI thay đổi (ví dụ: đổi id của nút Login),
- *   ta chỉ cần sửa ở MỘT chỗ duy nhất trong Page class, không cần sửa từng file test.
- */
-
 import { type Page, type Locator } from '@playwright/test';
 
 export class LoginPage {
-  // ========================================================================
-  // KHAI BÁO THUỘC TÍNH (PROPERTIES)
-  // ========================================================================
-
-  /**
-   * 'page' là đối tượng chính của Playwright, đại diện cho một tab trình duyệt.
-   * Tất cả thao tác (click, fill, goto, ...) đều thông qua đối tượng này.
-   * Dùng 'readonly' vì page không nên bị gán lại sau khi khởi tạo.
-   */
   readonly page: Page;
 
-  /**
-   * Khai báo các LOCATOR cho từng phần tử UI trên trang Login.
-   *
-   * TẠI SAO dùng Locator thay vì string selector cũ?
-   * - Locator là API hiện đại của Playwright (thay thế page.$(), page.$$() đã lỗi thời).
-   * - Locator có cơ chế auto-waiting: tự đợi phần tử xuất hiện trước khi tương tác.
-   * - Locator tự retry nếu phần tử chưa sẵn sàng → test ổn định hơn (ít flaky).
-   */
-  readonly usernameInput: Locator;   // Ô nhập tên đăng nhập
-  readonly passwordInput: Locator;   // Ô nhập mật khẩu
-  readonly loginButton: Locator;     // Nút "Login"
-  readonly errorMessage: Locator;    // Thông báo lỗi (hiện khi đăng nhập sai)
-  readonly loginLogo: Locator;       // Logo "Swag Labs" trên trang login
+  // ========================================================================
+  // 1. FORM ĐĂNG NHẬP (BÊN TRÁI)
+  // ========================================================================
+  readonly loginFormTitle: Locator;
+  readonly emailInput: Locator;
+  readonly passwordInput: Locator;
+  readonly loginButton: Locator;
+  readonly errorMessage: Locator;
 
   // ========================================================================
-  // CONSTRUCTOR (HÀM KHỞI TẠO)
+  // 2. FORM ĐĂNG KÝ NHANH (BÊN PHẢI)
   // ========================================================================
+  readonly signupFormTitle: Locator;
+  readonly signupNameInput: Locator;
+  readonly signupEmailInput: Locator;
+  readonly signupButton: Locator;
+  readonly signupErrorMessage: Locator;
 
-  /**
-   * Constructor nhận vào đối tượng 'page' từ Playwright.
-   * Tại đây, ta khởi tạo tất cả locator MỘT LẦN DUY NHẤT.
-   *
-   * TẠI SAO khởi tạo locator trong constructor?
-   * - Đảm bảo tính nhất quán: mọi method trong class đều dùng chung locator.
-   * - Nếu UI thay đổi selector, ta chỉ sửa ở đây → nguyên tắc DRY (Don't Repeat Yourself).
-   */
+  // ========================================================================
+  // 3. FORM CHI TIẾT TÀI KHOẢN (TRANG /signup)
+  // ========================================================================
+  readonly titleGenderMr: Locator;
+  readonly titleGenderMrs: Locator;
+  readonly signupPasswordInput: Locator;
+  readonly dobDaysSelect: Locator;
+  readonly dobMonthsSelect: Locator;
+  readonly dobYearsSelect: Locator;
+  readonly newsletterCheckbox: Locator;
+  readonly offersCheckbox: Locator;
+
+  // Address details
+  readonly firstNameInput: Locator;
+  readonly lastNameInput: Locator;
+  readonly companyInput: Locator;
+  readonly address1Input: Locator;
+  readonly address2Input: Locator;
+  readonly countrySelect: Locator;
+  readonly stateInput: Locator;
+  readonly cityInput: Locator;
+  readonly zipcodeInput: Locator;
+  readonly mobileNumberInput: Locator;
+  readonly createAccountButton: Locator;
+
+  // ========================================================================
+  // 4. TRẠNG THÁI TÀI KHOẢN & ĐIỀU HƯỚNG
+  // ========================================================================
+  readonly accountCreatedHeader: Locator;
+  readonly accountDeletedHeader: Locator;
+  readonly continueButton: Locator;
+
+  readonly logoutLink: Locator;
+  readonly deleteAccountLink: Locator;
+  readonly loggedInAsText: Locator;
+
   constructor(page: Page) {
     this.page = page;
 
-    // data-test là thuộc tính (attribute) tùy chỉnh mà SauceDemo đặt sẵn cho testing.
-    // Dùng data-test thay vì id/class vì nó KHÔNG bị ảnh hưởng bởi CSS hay refactor giao diện.
-    this.usernameInput = page.locator('[data-test="username"]');
-    this.passwordInput = page.locator('[data-test="password"]');
-    this.loginButton = page.locator('[data-test="login-button"]');
-    this.errorMessage = page.locator('[data-test="error"]');
+    // Login Form Locators
+    const loginForm = page.locator('div.login-form');
+    this.loginFormTitle = loginForm.locator('h2');
+    this.emailInput     = loginForm.locator('input[name="email"]');
+    this.passwordInput  = loginForm.locator('input[name="password"]');
+    this.loginButton    = loginForm.locator('button[type="submit"]');
+    this.errorMessage   = page.locator('p:has-text("Your email or password is incorrect!"), .alert-danger, form p[style*="color:red"]').first();
 
-    // Logo dùng class selector vì không có data-test attribute.
-    this.loginLogo = page.locator('.login_logo');
+    // Quick Signup Form Locators (Right side of login page)
+    const signupForm = page.locator('div.signup-form');
+    this.signupFormTitle = signupForm.locator('h2');
+    this.signupNameInput = signupForm.locator('input[name="name"]');
+    this.signupEmailInput = signupForm.locator('input[name="email"]');
+    this.signupButton = signupForm.locator('button[type="submit"]');
+    this.signupErrorMessage = page.locator('p:has-text("Email Address already exist!")');
+
+    // Registration Details Form Locators (/signup page)
+    this.titleGenderMr = page.locator('#id_gender1');
+    this.titleGenderMrs = page.locator('#id_gender2');
+    this.signupPasswordInput = page.locator('input[type="password"]#password');
+    this.dobDaysSelect = page.locator('select#days');
+    this.dobMonthsSelect = page.locator('select#months');
+    this.dobYearsSelect = page.locator('select#years');
+    this.newsletterCheckbox = page.locator('input#newsletter');
+    this.offersCheckbox = page.locator('input#optin');
+
+    this.firstNameInput = page.locator('input#first_name');
+    this.lastNameInput = page.locator('input#last_name');
+    this.companyInput = page.locator('input#company');
+    this.address1Input = page.locator('input#address1');
+    this.address2Input = page.locator('input#address2');
+    this.countrySelect = page.locator('select#country');
+    this.stateInput = page.locator('input#state');
+    this.cityInput = page.locator('input#city');
+    this.zipcodeInput = page.locator('input#zipcode');
+    this.mobileNumberInput = page.locator('input#mobile_number');
+    this.createAccountButton = page.locator('button[data-qa="create-account"]');
+
+    // Status Pages & Action Buttons
+    this.accountCreatedHeader = page.locator('h2[data-qa="account-created"] b');
+    this.accountDeletedHeader = page.locator('h2[data-qa="account-deleted"] b');
+    this.continueButton = page.locator('a[data-qa="continue-button"]');
+
+    // Navigation and status elements
+    this.logoutLink = page.locator('a[href="/logout"]');
+    this.deleteAccountLink = page.locator('a[href="/delete_account"]');
+    this.loggedInAsText = page.locator('li:has-text("Logged in as")');
   }
 
-  // ========================================================================
-  // METHODS (CÁC PHƯƠNG THỨC HÀNH ĐỘNG)
-  // ========================================================================
-  // Các method này đại diện cho HÀNH ĐỘNG của người dùng trên trang.
-  // Chúng KHÔNG chứa assertion (expect) → tách biệt Action và Verification.
-
   /**
-   * Điều hướng (navigate) đến trang Login.
-   *
-   * TẠI SAO dùng '/' thay vì URL đầy đủ?
-   * - Vì ta đã cấu hình baseURL trong playwright.config.ts.
-   * - page.goto('/') sẽ tự động ghép thành 'https://www.saucedemo.com/'.
-   * - Giúp dễ dàng đổi môi trường (dev, staging, production) mà không sửa code test.
+   * Điều hướng trực tiếp đến trang Đăng nhập / Đăng ký.
    */
   async goto() {
-    await this.page.goto('/');
+    await this.page.goto('/login', { waitUntil: 'domcontentloaded' });
+    await this.loginFormTitle.waitFor({ state: 'visible', timeout: 30000 });
   }
 
   /**
-   * Thực hiện hành động đăng nhập với username và password được truyền vào.
-   *
-   * TẠI SAO tách riêng thành một method?
-   * - Hành động "đăng nhập" được dùng lại ở NHIỀU test case khác nhau
-   *   (test đăng nhập thành công, thất bại, tài khoản bị khóa, ...).
-   * - Nếu quy trình đăng nhập thay đổi (ví dụ: thêm CAPTCHA), ta chỉ sửa ở đây.
-   *
-   * @param username - Tên đăng nhập
-   * @param password - Mật khẩu
+   * Đăng nhập tài khoản.
    */
-  async login(username: string, password: string) {
-    // fill() sẽ xóa nội dung cũ rồi nhập nội dung mới → an toàn hơn type().
-    await this.usernameInput.fill(username);
+  async login(email: string, password: string) {
+    await this.emailInput.fill(email);
     await this.passwordInput.fill(password);
-
-    // click() tự đợi nút có thể click được (visible, enabled) rồi mới click.
     await this.loginButton.click();
   }
 
   /**
-   * Lấy nội dung text của thông báo lỗi.
-   *
-   * TẠI SAO trả về Promise<string>?
-   * - textContent() là hàm bất đồng bộ (async), trả về nội dung text của phần tử.
-   * - Dùng '?? ""' (nullish coalescing) để trả về chuỗi rỗng nếu phần tử không tồn tại,
-   *   tránh lỗi null/undefined gây crash test.
+   * Nhập thông tin đăng ký nhanh bên phải và click Signup.
    */
-  async getErrorMessage(): Promise<string> {
-    return (await this.errorMessage.textContent()) ?? '';
+  async submitQuickSignup(name: string, email: string) {
+    await this.signupNameInput.fill(name);
+    await this.signupEmailInput.fill(email);
+    await this.signupButton.click();
+  }
+
+  /**
+   * Điền chi tiết thông tin đăng ký tài khoản (trên trang /signup).
+   */
+  async fillAccountDetails(details: {
+    gender: 'Mr' | 'Mrs';
+    password: string;
+    dob: { day: string; month: string; year: string };
+    newsletter: boolean;
+    offers: boolean;
+    firstName: string;
+    lastName: string;
+    company?: string;
+    address1: string;
+    address2?: string;
+    country: string;
+    state: string;
+    city: string;
+    zipcode: string;
+    mobileNumber: string;
+  }) {
+    // 1. Chọn Gender
+    if (details.gender === 'Mr') {
+      await this.titleGenderMr.check();
+    } else {
+      await this.titleGenderMrs.check();
+    }
+
+    // 2. Điền password
+    await this.signupPasswordInput.fill(details.password);
+
+    // 3. Chọn ngày sinh
+    await this.dobDaysSelect.selectOption(details.dob.day);
+    await this.dobMonthsSelect.selectOption(details.dob.month);
+    await this.dobYearsSelect.selectOption(details.dob.year);
+
+    // 4. Newsletter & Special Offers Checkbox
+    if (details.newsletter) {
+      await this.newsletterCheckbox.check();
+    }
+    if (details.offers) {
+      await this.offersCheckbox.check();
+    }
+
+    // 5. Điền thông tin địa chỉ thanh toán
+    await this.firstNameInput.fill(details.firstName);
+    await this.lastNameInput.fill(details.lastName);
+    if (details.company) {
+      await this.companyInput.fill(details.company);
+    }
+    await this.address1Input.fill(details.address1);
+    if (details.address2) {
+      await this.address2Input.fill(details.address2);
+    }
+    await this.countrySelect.selectOption(details.country);
+    await this.stateInput.fill(details.state);
+    await this.cityInput.fill(details.city);
+    await this.zipcodeInput.fill(details.zipcode);
+    await this.mobileNumberInput.fill(details.mobileNumber);
+
+    // 6. Nhấp nút tạo tài khoản
+    await this.createAccountButton.click();
+  }
+
+  /**
+   * Nhấp nút Continue trên màn hình trạng thái
+   */
+  async clickContinue() {
+    await this.continueButton.click();
+  }
+
+  /**
+   * Nhấp xóa tài khoản từ Menu Navbar
+   */
+  async deleteAccount() {
+    await this.deleteAccountLink.click();
+  }
+
+  /**
+   * Kiểm tra xem người dùng có đang ở trạng thái đăng nhập không.
+   */
+  async isLoggedIn(): Promise<boolean> {
+    return await this.logoutLink.isVisible({ timeout: 5000 }).catch(() => false);
+  }
+
+  /**
+   * Lấy text "Logged in as <username>" từ navbar.
+   */
+  async getLoggedInText(): Promise<string> {
+    return (await this.loggedInAsText.textContent()) ?? '';
   }
 }

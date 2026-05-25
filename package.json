@@ -1,19 +1,14 @@
 {
   "name": "ui_automation_testing",
-  "version": "1.0.0",
-  "description": "",
+  "version": "2.0.0",
+  "description": "Framework kiểm thử tự động E2E cho AutomationExercise.com - Đồ án Đảm bảo Chất lượng Phần mềm",
   "main": "index.js",
   "scripts": {
-    "test": "npx playwright test",
-    "test:headed": "npx playwright test --headed",
-    "test:chromium": "npx playwright test --project=chromium",
-    "test:firefox": "npx playwright test --project=firefox",
-    "test:report": "npx playwright show-report",
-    "vrt:update": "npx playwright test tests/visual.spec.ts --update-snapshots --project=chromium",
-    "vrt:run": "npx playwright test tests/visual.spec.ts --project=chromium",
-    "vrt:run:all-browsers": "npx playwright test tests/visual.spec.ts",
-    "vrt:update:all-browsers": "npx playwright test tests/visual.spec.ts --update-snapshots",
-    "perf:run": "npx playwright test tests/performance.spec.ts --project=chromium --workers=1 --timeout=120000"
+    "test"            : "npx playwright test --project=chromium",
+    "test:headed"     : "npx playwright test --project=chromium --headed",
+    "test:report"     : "npx playwright show-report",
+    "e2e:run"         : "npx playwright test tests/e2e-shopping.spec.ts --project=chromium --headed",
+    "e2e:run:headless": "npx playwright test tests/e2e-shopping.spec.ts --project=chromium"
   },
   "repository": {
     "type": "git",
@@ -29,8 +24,6 @@
   "homepage": "https://github.com/Kaiser2484/UI_Automation_Testing#readme",
   "devDependencies": {
     "@playwright/test": "^1.59.1",
-    "@types/node": "^25.6.0",
-    "lighthouse": "^13.3.0",
-    "playwright-lighthouse": "^4.0.0"
+    "@types/node": "^25.6.0"
   }
 }
