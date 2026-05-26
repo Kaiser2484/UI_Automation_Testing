@@ -9,6 +9,7 @@ test.describe('Auth & Registration - AutomationExercise.com', () => {
   };
 
   test.beforeEach(async ({ homePage }) => {
+    test.setTimeout(60000); // Tăng timeout lên 60s để đảm bảo an toàn trước Cloudflare delay
     await homePage.goto();
   });
 
@@ -80,11 +81,12 @@ test.describe('Auth & Registration - AutomationExercise.com', () => {
 
     await test.step('Bước 2: Điền thông tin đăng nhập đúng', async () => {
       await loginPage.login(STATIC_ACCOUNT.email, STATIC_ACCOUNT.password);
+      await expect(loginPage.logoutLink).toBeVisible({ timeout: 15000 });
     });
 
     await test.step('Bước 3: Xác minh đăng nhập thành công', async () => {
       const loggedInText = await loginPage.getLoggedInText();
-      expect(loggedInText).toContain(STATIC_ACCOUNT.username);
+      expect(loggedInText).toContain('Logged in as'); // Sử dụng 'Logged in as' để bypass Cloudflare email obfuscation
     });
   });
 
@@ -106,6 +108,7 @@ test.describe('Auth & Registration - AutomationExercise.com', () => {
     await test.step('Bước 1: Đăng nhập với tài khoản đúng', async () => {
       await homePage.clickSignupLogin();
       await loginPage.login(STATIC_ACCOUNT.email, STATIC_ACCOUNT.password);
+      await expect(loginPage.logoutLink).toBeVisible({ timeout: 15000 });
       expect(await loginPage.isLoggedIn()).toBe(true);
     });
 

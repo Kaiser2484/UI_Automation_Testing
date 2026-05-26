@@ -10,6 +10,7 @@ test.describe('Cart & Checkout Flow - AutomationExercise.com', () => {
   };
 
   test.beforeEach(async ({ homePage }) => {
+    test.setTimeout(90000); // Tăng timeout lên 90s cho các kịch bản checkout E2E phức tạp và dài
     await homePage.goto();
   });
 

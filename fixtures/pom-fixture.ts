@@ -34,6 +34,27 @@ type POMFixtures = {
 
 // Kéo rộng đối tượng `test` cơ bản của Playwright với các custom fixtures
 export const test = base.extend<POMFixtures>({
+  page: async ({ page }, use) => {
+    // Chặn tất cả các yêu cầu quảng cáo và phân tích để tăng tốc và tránh flaky test do quảng cáo
+    await page.route('**/*', (route) => {
+      const url = route.request().url();
+      if (
+        url.includes('googleads') ||
+        url.includes('doubleclick') ||
+        url.includes('adservice') ||
+        url.includes('googlesyndication') ||
+        url.includes('analytics') ||
+        url.includes('pagead') ||
+        url.includes('adsbygoogle')
+      ) {
+        route.abort();
+      } else {
+        route.continue();
+      }
+    });
+    await use(page);
+  },
+
   homePage: async ({ page }, use) => {
     const homePage = new HomePage(page);
     await use(homePage);
