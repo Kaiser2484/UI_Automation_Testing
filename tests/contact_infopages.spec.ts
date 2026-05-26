@@ -3,6 +3,7 @@ import * as path from 'path';
 
 test.describe('Contact Us & Info Pages - AutomationExercise.com', () => {
   test.beforeEach(async ({ homePage }) => {
+    test.setTimeout(60000); // Tăng timeout cho TC-06 có upload file và dialog handling
     await homePage.goto();
   });
 
@@ -32,6 +33,7 @@ test.describe('Contact Us & Info Pages - AutomationExercise.com', () => {
     });
 
     await test.step('Bước 5: Click Submit và tự động đồng ý hộp thoại xác nhận (Alert Dialog)', async () => {
+      // submit() tự xử lý dialog và đợi jQuery show successMessage
       await contactUsPage.submit();
     });
 

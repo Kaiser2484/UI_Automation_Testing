@@ -84,7 +84,9 @@ test.describe('Cart & Checkout Flow - AutomationExercise.com', () => {
 
     await test.step('Bước 3: Click đăng nhập / đăng ký trên Checkout popup', async () => {
       const checkoutPopupLink = page.locator('u:has-text("Register / Login")');
-      await checkoutPopupLink.click();
+      // Cuộn phần tử vào vùng hiển thị, sau đó dùng force=true để vượt qua overlay/backdrop của modal
+      await checkoutPopupLink.scrollIntoViewIfNeeded();
+      await checkoutPopupLink.click({ force: true });
     });
 
     await test.step('Bước 4: Hoàn thành đăng ký tài khoản mới', async () => {

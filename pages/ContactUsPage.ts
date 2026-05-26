@@ -12,15 +12,10 @@ export class ContactUsPage {
   readonly submitButton: Locator;
   readonly successMessage: Locator;
   readonly homeButton: Locator;
+  submittedSuccessfully: boolean = false; // Cờ kiểm tra kết quả submit
 
   constructor(page: Page) {
     this.page = page;
-
-    // Lắng nghe hộp thoại và tự động bấm OK (accept) cho mọi xác nhận trên trang này
-    this.page.on('dialog', async (dialog) => {
-      console.log(`[Dialog] Tự động chấp nhận hộp thoại: ${dialog.message()}`);
-      await dialog.accept();
-    });
 
     // "GET IN TOUCH" heading
     this.title = page.locator('h2.title:has-text("Get In Touch")');
@@ -33,7 +28,7 @@ export class ContactUsPage {
     this.fileInput = page.locator('input[name="upload_file"]');
     this.submitButton = page.locator('input[data-qa="submit-button"]');
 
-    // Success response elements
+    // Success response div — jQuery sẽ show element này sau khi dialog được accept
     this.successMessage = page.locator('.status.alert-success');
     this.homeButton = page.locator('a.btn.btn-success');
   }
@@ -66,10 +61,26 @@ export class ContactUsPage {
   }
 
   /**
-   * Click nút gửi form.
+   * Click nút gửi form, chờ dialog xuất hiện, accept, rồi chờ DOM cập nhật.
    */
   async submit() {
+    // Đăng ký one-time dialog handler TRƯỚC khi click
+    const dialogHandled = new Promise<void>((resolve) => {
+      this.page.once('dialog', async (dialog) => {
+        console.log(`[Dialog] Tự động chấp nhận hộp thoại: ${dialog.message()}`);
+        await dialog.accept();
+        resolve();
+      });
+    });
+
+    // Click submit để trigger dialog
     await this.submitButton.click();
+
+    // Chờ dialog được accept xong
+    await dialogHandled;
+
+    // Chờ thêm 2s để jQuery show() successMessage hoàn tất trước khi assertion
+    await this.page.waitForTimeout(2000);
   }
 
   /**
