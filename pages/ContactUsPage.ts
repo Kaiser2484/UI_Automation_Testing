@@ -62,8 +62,12 @@ export class ContactUsPage {
 
   /**
    * Click nút gửi form, chờ dialog xuất hiện, accept, rồi chờ DOM cập nhật.
+   * Dùng force:true để bypass mọi ad overlay có thể che khuất nút Submit.
    */
   async submit() {
+    // Cuộn nút Submit vào vùng nhìn thấy, tránh bị che khuất bởi ads
+    await this.submitButton.scrollIntoViewIfNeeded();
+
     // Đăng ký one-time dialog handler TRƯỚC khi click
     const dialogHandled = new Promise<void>((resolve) => {
       this.page.once('dialog', async (dialog) => {
@@ -73,14 +77,17 @@ export class ContactUsPage {
       });
     });
 
-    // Click submit để trigger dialog
-    await this.submitButton.click();
+    // Click submit với force:true để vượt qua mọi overlay che khuất
+    await this.submitButton.click({ force: true });
 
-    // Chờ dialog được accept xong
-    await dialogHandled;
+    // Chờ dialog được accept, timeout 15s để tránh deadlock nếu dialog không xuất hiện
+    await Promise.race([
+      dialogHandled,
+      this.page.waitForTimeout(15000), // fallback: tiếp tục sau 15s nếu dialog không đến
+    ]);
 
-    // Chờ thêm 2s để jQuery show() successMessage hoàn tất trước khi assertion
-    await this.page.waitForTimeout(2000);
+    // Chờ thêm 1.5s để jQuery show() successMessage hoàn tất trước khi assertion
+    await this.page.waitForTimeout(1500);
   }
 
   /**

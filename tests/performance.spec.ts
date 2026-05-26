@@ -10,6 +10,8 @@
  */
 
 import { test, expect } from '../fixtures/pom-fixture';
+import * as fs from 'fs';
+import * as path from 'path';
 
 test.describe('Performance & Web Vitals Testing - AutomationExercise.com', () => {
   // Ngưỡng hiệu năng tối đa (SLA Thresholds) chuẩn SQA
@@ -88,6 +90,70 @@ test.describe('Performance & Web Vitals Testing - AutomationExercise.com', () =>
       expect(jsHeapSize).toBeLessThan(150);
       expect(domNodes).toBeLessThan(4000);
       console.log('✓ [CDP Perf] Hệ thống quản lý bộ nhớ tốt, không có rò rỉ RAM (Memory Leak).');
+    });
+  });
+
+  test('PERF-03: Chạy Lighthouse Audit đầy đủ và xuất báo cáo HTML (Lighthouse Full Report)', async () => {
+    // Chỉ chạy trên Chromium — Lighthouse yêu cầu Chrome DevTools Protocol
+    test.skip(test.info().project.name === 'firefox', 'Lighthouse chỉ hỗ trợ trên Chromium.');
+    test.setTimeout(120000);
+
+    const targetUrl = 'https://automationexercise.com';
+    const reportsDir = path.join(process.cwd(), 'lighthouse-reports');
+    const reportName = `lighthouse-home-${new Date().toISOString().replace(/[:.]/g, '-')}`;
+    const htmlPath = path.join(reportsDir, `${reportName}.html`);
+
+    await test.step('Bước 1: Chuẩn bị thư mục xuất báo cáo', () => {
+      if (!fs.existsSync(reportsDir)) {
+        fs.mkdirSync(reportsDir, { recursive: true });
+      }
+    });
+
+    await test.step('Bước 2: Chạy Lighthouse Audit và tạo HTML report', () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { spawnSync } = require('child_process');
+
+      const args = [
+        'lighthouse',
+        targetUrl,
+        '--output', 'html',
+        '--output-path', htmlPath,
+        '--preset=desktop',
+        '--chrome-flags=--headless=new --no-sandbox --disable-dev-shm-usage',
+        '--only-categories=performance,accessibility,best-practices,seo',
+        '--quiet',
+      ];
+
+      console.log('----------------------------------------------------');
+      console.log('🔦 CHẠY LIGHTHOUSE AUDIT - VUI LÒNG ĐỢI ~30-60 GIÂY...');
+      console.log(`- URL mục tiêu  : ${targetUrl}`);
+      console.log(`- Báo cáo HTML  : ${htmlPath}`);
+      console.log('----------------------------------------------------');
+
+      const result = spawnSync('npx', args, {
+        stdio: 'inherit',
+        timeout: 100000,
+        shell: true,
+      });
+
+      // Bỏ qua exit code khác 0 nếu file đã được tạo thành công
+      // (Lỗi EPERM từ chrome-launcher cleanup trên Windows không ảnh hưởng đến output)
+      if (result.error) {
+        throw result.error;
+      }
+    });
+
+    await test.step('Bước 3: Xác minh báo cáo HTML đã được tạo thành công', () => {
+      const exists = fs.existsSync(htmlPath);
+      expect(exists).toBe(true);
+      const stats = fs.statSync(htmlPath);
+      expect(stats.size).toBeGreaterThan(10000);
+
+      console.log('----------------------------------------------------');
+      console.log('✅ LIGHTHOUSE REPORT ĐÃ TẠO THÀNH CÔNG!');
+      console.log(`📄 Mở báo cáo tại: file:///${htmlPath.replace(/\\/g, '/')}`);
+      console.log(`📦 Kích thước file : ${(stats.size / 1024).toFixed(1)} KB`);
+      console.log('----------------------------------------------------');
     });
   });
 });

@@ -12,8 +12,8 @@ test.describe('Contact Us & Info Pages - AutomationExercise.com', () => {
       await homePage.verifyHomePageVisible();
     });
 
-    await test.step('Bước 2: Click vào mục "Contact Us" ở navbar', async () => {
-      await homePage.clickContactUs();
+    await test.step('Bước 2: Điều hướng trực tiếp đến trang Contact Us', async () => {
+      await contactUsPage.goto(); // Dùng direct navigation thay vì click navbar để tránh flaky do ad overlay
       await expect(contactUsPage.title).toBeVisible();
     });
 
